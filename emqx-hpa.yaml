@@ -15,11 +15,4 @@ spec:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 60
-  - type: Pods
-    pods:
-      metric:
-        name: emqx_connections_total
-      target:
-        type: AverageValue
-        averageValue: 10000
+        averageUtilization: 20  # lower to trigger scaling during tests
