@@ -7,8 +7,8 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment        # change to StatefulSet if that’s what EMQX uses
-    name: my-emqx           # change to actual name from kubectl get deploy/sts
+    kind: Deployment
+    name: my-emqx
   minReplicas: 3
   maxReplicas: 10
   metrics:
@@ -24,6 +24,3 @@ spec:
         target:
           type: Utilization
           averageUtilization: 50
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 300
