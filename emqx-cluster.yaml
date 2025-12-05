@@ -1,0 +1,28 @@
+apiVersion: apps.emqx.io/v1beta4
+kind: EmqxBroker
+metadata:
+  name: emqx
+  namespace: emqx
+spec:
+  replicas: 3  # initial nodes
+  image: emqx/emqx:5.8.8
+  metrics:
+    enabled: true  # enables Prometheus metrics
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 60  # scale if CPU > 60%
+      - type: Custom
+        external:
+          metric:
+            name: emqx_connections  # EMQX connections per node
+          target:
+            type: Value
+            value: 100  # scale if connections >= 100 per node
