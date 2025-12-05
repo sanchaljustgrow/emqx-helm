@@ -1,4 +1,4 @@
-apiVersion: apps.emqx.io/v1
+apiVersion: apps.emqx.io/v1beta4
 kind: EmqxBroker
 metadata:
   name: emqx
@@ -19,7 +19,10 @@ spec:
           target:
             type: Utilization
             averageUtilization: 60  # scale if CPU > 60%
-      - type: Custom
-        custom:
-          metricName: emqx_connections  # EMQX connections per node
-          targetValue: 100              # scale if connections >= 100 per node
+      - type: External
+        external:
+          metric:
+            name: emqx_connections
+          target:
+            type: Value
+            value: 100  # scale if connections >= 100 per node
