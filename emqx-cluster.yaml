@@ -1,13 +1,13 @@
-apiVersion: apps.emqx.io/v1beta4
+apiVersion: apps.emqx.io/v1beta3
 kind: EmqxBroker
 metadata:
   name: emqx
   namespace: emqx
 spec:
-  replicas: 3  # initial nodes
+  replicas: 3
   image: emqx/emqx:5.8.8
   metrics:
-    enabled: true  # enables Prometheus metrics
+    enabled: true
   autoscaling:
     enabled: true
     minReplicas: 3
@@ -18,11 +18,11 @@ spec:
           name: cpu
           target:
             type: Utilization
-            averageUtilization: 60  # scale if CPU > 60%
+            averageUtilization: 60
       - type: External
         external:
           metric:
             name: emqx_connections
           target:
             type: Value
-            value: 100  # scale if connections >= 100 per node
+            value: 100
