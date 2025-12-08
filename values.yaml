@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 1  # single pod for Minikube/single-node
 
 service:
   type: ClusterIP
@@ -36,13 +36,8 @@ listener:
     dashboard:
       port: 18083
 
-affinity:
-  podAntiAffinity:
-    requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchLabels:
-            app: emqx
-        topologyKey: "kubernetes.io/hostname"
+# Remove podAntiAffinity for single-node
+affinity: {}
 
 persistence:
   enabled: true
