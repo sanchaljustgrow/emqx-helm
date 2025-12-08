@@ -1,14 +1,21 @@
-replicaCount: 3  # initial cluster size
+replicaCount: 3
 
 service:
   type: ClusterIP
+  ports:
+    - name: dashboard
+      port: 18083
+      targetPort: 18083
+    - name: metrics
+      port: 18084
+      targetPort: 18084
 
 clustering:
   strategy: auto
   discovery: k8s
   k8s:
     namespace: default
-    serviceName: emqx  # headless service name for cluster discovery
+    serviceName: emqx  # headless service for cluster discovery
 
 resources:
   limits:
@@ -20,8 +27,14 @@ resources:
 
 metrics:
   enabled: true
+  port: 18084
   serviceMonitor:
     enabled: true
+
+listener:
+  http:
+    dashboard:
+      port: 18083  # custom dashboard port
 
 affinity:
   podAntiAffinity:
@@ -41,7 +54,7 @@ persistence:
 livenessProbe:
   httpGet:
     path: /status
-    port: 8080
+    port: 18083
   initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 5
@@ -50,7 +63,7 @@ livenessProbe:
 readinessProbe:
   httpGet:
     path: /status
-    port: 8080
+    port: 18083
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
