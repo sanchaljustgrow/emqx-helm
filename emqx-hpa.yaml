@@ -6,21 +6,14 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
+    kind: StatefulSet
     name: emqx
-  minReplicas: 3   # Always start with 3
-  maxReplicas: 7   # Always odd numbers
+  minReplicas: 3
+  maxReplicas: 7
   metrics:
   - type: Resource
     resource:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 70
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 300
-      policies:
-      - type: Percent
-        value: 0
-        periodSeconds: 300
+        averageUtilization: 20
