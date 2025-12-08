@@ -11,10 +11,9 @@ spec:
   minReplicas: 1
   maxReplicas: 5
   metrics:
-  - type: External
-    external:
-      metric:
-        name: emqx_connections_total
+  - type: Resource
+    resource:
+      name: cpu
       target:
-        type: Value
-        value: 10
+        type: Utilization
+        averageUtilization: 50
