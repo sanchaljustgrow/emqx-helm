@@ -15,7 +15,7 @@ clustering:
   discovery: k8s
   k8s:
     namespace: default
-    serviceName: emqx  # headless service for cluster discovery
+    serviceName: emqx
 
 resources:
   limits:
@@ -34,7 +34,7 @@ metrics:
 listener:
   http:
     dashboard:
-      port: 18083  # custom dashboard port
+      port: 18083
 
 affinity:
   podAntiAffinity:
