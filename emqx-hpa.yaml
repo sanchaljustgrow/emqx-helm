@@ -13,5 +13,8 @@ spec:
   metrics:
     - type: External
       external:
-        metricName: emqx_connections
-        targetValue: 1000
+        metric:
+          name: emqx_connections
+        target:
+          type: Value
+          value: 1000
