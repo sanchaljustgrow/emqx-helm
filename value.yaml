@@ -1,0 +1,19 @@
+replicaCount: 3  # initial cluster size
+
+service:
+  type: ClusterIP
+
+clustering:
+  strategy: auto
+  discovery: k8s
+  k8s:
+    namespace: default
+    serviceName: emqx  # headless service name for cluster discovery
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
