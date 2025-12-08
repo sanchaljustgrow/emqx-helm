@@ -17,3 +17,46 @@ resources:
   requests:
     cpu: 250m
     memory: 256Mi
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            app: emqx
+        topologyKey: "kubernetes.io/hostname"
+
+persistence:
+  enabled: true
+  storageClass: standard
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+
+livenessProbe:
+  httpGet:
+    path: /status
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  httpGet:
+    path: /status
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+env:
+  EMQX_NAME: emqx
+  EMQX_HOST: 0.0.0.0
+  EMQX_NODE_COOKIE: mysecretcookie
