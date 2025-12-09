@@ -1,8 +1,17 @@
-replicaCount: 1  # single pod for Minikube/single-node
+# ───────────────────────────────────────────────
+# Replica Count (StatefulSet)
+# ───────────────────────────────────────────────
+replicaCount: 3
 
+# ───────────────────────────────────────────────
+# EMQX Service
+# ───────────────────────────────────────────────
 service:
   type: ClusterIP
   ports:
+    - name: mqtt
+      port: 1883
+      targetPort: 1883
     - name: dashboard
       port: 18083
       targetPort: 18083
@@ -10,13 +19,19 @@ service:
       port: 18084
       targetPort: 18084
 
+# ───────────────────────────────────────────────
+# Clustering
+# ───────────────────────────────────────────────
 clustering:
-  strategy: auto
-  discovery: k8s
+  strategy: "k8s"
+  discovery: "k8s"
   k8s:
-    namespace: default
-    serviceName: emqx
+    namespace: emqx
+    serviceName: emqx-headless
 
+# ───────────────────────────────────────────────
+# Resource Limits
+# ───────────────────────────────────────────────
 resources:
   limits:
     cpu: 500m
@@ -25,20 +40,34 @@ resources:
     cpu: 250m
     memory: 256Mi
 
+# ───────────────────────────────────────────────
+# Metrics + Prometheus Monitoring
+# ───────────────────────────────────────────────
 metrics:
   enabled: true
   port: 18084
-  serviceMonitor:
-    enabled: true
 
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  scrapeTimeout: 10s
+
+# ───────────────────────────────────────────────
+# Dashboard Listener
+# ───────────────────────────────────────────────
 listener:
   http:
     dashboard:
       port: 18083
 
-# Remove podAntiAffinity for single-node
+# ───────────────────────────────────────────────
+# Disable anti-affinity for local cluster
+# ───────────────────────────────────────────────
 affinity: {}
 
+# ───────────────────────────────────────────────
+# Persistent Volume
+# ───────────────────────────────────────────────
 persistence:
   enabled: true
   storageClass: standard
@@ -46,6 +75,9 @@ persistence:
     - ReadWriteOnce
   size: 1Gi
 
+# ───────────────────────────────────────────────
+# Health Probes
+# ───────────────────────────────────────────────
 livenessProbe:
   httpGet:
     path: /status
@@ -64,6 +96,9 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 6
 
+# ───────────────────────────────────────────────
+# Environment Variables
+# ───────────────────────────────────────────────
 env:
   EMQX_NAME: emqx
   EMQX_HOST: 0.0.0.0
