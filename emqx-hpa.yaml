@@ -1,7 +1,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: emqx-connection-hpa
+  name: emqx-hpa
   namespace: emqx
 spec:
   scaleTargetRef:
@@ -9,12 +9,11 @@ spec:
     kind: StatefulSet
     name: emqx
   minReplicas: 3
-  maxReplicas: 10
+  maxReplicas: 7
   metrics:
-  - type: External
-    external:
-      metric:
-        name: emqx_connections
+  - type: Resource
+    resource:
+      name: cpu
       target:
-        type: Value
-        value: "500"   # scale when total connections > 500
+        type: Utilization
+        averageUtilization: 20
