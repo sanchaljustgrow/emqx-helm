@@ -1,0 +1,13 @@
+rules:
+  custom:
+    - seriesQuery: 'emqx_connections_count{job="emqx"}'
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      name:
+        matches: "^emqx_connections_count$"
+        as: "emqx_connections"
+      metricsQuery: 'sum(emqx_connections_count)'
