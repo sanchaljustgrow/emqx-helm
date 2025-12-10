@@ -18,14 +18,14 @@ spec:
       selectPolicy: Max
       policies:
         - type: Pods
-          value: 1
+          value: 1            # scale up 1 pod at a time
           periodSeconds: 10
     scaleDown:
-      stabilizationWindowSeconds: 0     # DO NOT WAIT
+      stabilizationWindowSeconds: 0
       selectPolicy: Max
       policies:
         - type: Percent
-          value: 100                     # drop all pods except minReplicas
+          value: 100          
           periodSeconds: 10
 
   metrics:
@@ -34,4 +34,4 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 20
+          averageUtilization: 20   # target CPU utilization
