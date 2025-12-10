@@ -8,8 +8,26 @@ spec:
     apiVersion: apps/v1
     kind: StatefulSet
     name: emqx
-  minReplicas: 3
+
+  minReplicas: 1
   maxReplicas: 7
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      selectPolicy: Max
+      policies:
+      - type: Pods
+        value: 1           # add 1 pod at a time
+        periodSeconds: 10  # every 10 seconds it can scale once
+    scaleDown:
+      stabilizationWindowSeconds: 0
+      selectPolicy: Max
+      policies:
+      - type: Pods
+        value: 1           # remove 1 pod at a time
+        periodSeconds: 10  # every 10 seconds it can scale down once
+
   metrics:
   - type: Resource
     resource:
