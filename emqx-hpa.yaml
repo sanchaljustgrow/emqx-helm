@@ -17,21 +17,21 @@ spec:
       stabilizationWindowSeconds: 0
       selectPolicy: Max
       policies:
-      - type: Pods
-        value: 1           # add 1 pod at a time
-        periodSeconds: 10  # every 10 seconds it can scale once
+        - type: Pods
+          value: 1
+          periodSeconds: 10
     scaleDown:
-      stabilizationWindowSeconds: 0
+      stabilizationWindowSeconds: 0     # DO NOT WAIT
       selectPolicy: Max
       policies:
-      - type: Pods
-        value: 1           # remove 1 pod at a time
-        periodSeconds: 10  # every 10 seconds it can scale down once
+        - type: Percent
+          value: 100                     # drop all pods except minReplicas
+          periodSeconds: 10
 
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 20
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 20
