@@ -4,27 +4,39 @@ NAMESPACE="emqx"
 BROKER="emqx-headless.emqx.svc.cluster.local"
 PORT=1883
 
-TOTAL_DURATION=900     # 15 minutes in seconds
-STEP_INTERVAL=$((15 * 60))       # Increase load every 15 seconds 
-CLIENT_STEP=100        # Add 100 clients each step
-MAX_CLIENTS=1000       # Maximum total clients
+STEP_INTERVAL=$((15 * 60))   # 15 minutes
+CLIENT_STEP=100              # add 100 clients each step
+MAX_CLIENTS=1000             # maximum clients
 
 CURRENT_CLIENTS=100
-LOAD_GENERATORS=()
 
 echo "Starting EMQX load test..."
-echo "Total duration: 15 minutes"
-echo "Load increases every 15 seconds up to 1000 clients."
+echo "Increasing load every 15 minutes up to $MAX_CLIENTS clients."
 echo "-----------------------------------------------"
 
-START_TIME=$(date +%s)
+# Start initial pod
+kubectl run emqtt-bench \
+  --image=emqx/emqtt-bench -n $NAMESPACE --restart=Never -- \
+  pub -h $BROKER -p $PORT \
+  -c $CURRENT_CLIENTS \
+  --topic load/%c \
+  -q 1 \
+  -I 1000 \
+  -m '{"PV":"15.7"}' &
 
-while true; do
+POD_NAME=$(kubectl get pods -n $NAMESPACE -l run=emqtt-bench -o jsonpath='{.items[0].metadata.name}')
 
-  echo "Starting load generator with $CURRENT_CLIENTS clients..."
+while (( CURRENT_CLIENTS < MAX_CLIENTS )); do
+  sleep $STEP_INTERVAL
+  CURRENT_CLIENTS=$((CURRENT_CLIENTS + CLIENT_STEP))
+  
+  echo "Increasing clients in pod $POD_NAME to $CURRENT_CLIENTS..."
 
-  kubectl run -i --rm "emqtt-bench-$CURRENT_CLIENTS" \
-    --image=emqx/emqtt-bench -n $NAMESPACE -- \
+  # delete and restart pod with higher client count
+  kubectl delete pod $POD_NAME -n $NAMESPACE --wait=true
+
+  kubectl run emqtt-bench \
+    --image=emqx/emqtt-bench -n $NAMESPACE --restart=Never -- \
     pub -h $BROKER -p $PORT \
     -c $CURRENT_CLIENTS \
     --topic load/%c \
@@ -32,30 +44,7 @@ while true; do
     -I 1000 \
     -m '{"PV":"15.7"}' &
 
-  LOAD_GENERATORS+=($!)
-
-  # Check time limit
-  NOW=$(date +%s)
-  ELAPSED=$((NOW - START_TIME))
-
-  if (( ELAPSED >= TOTAL_DURATION )); then
-    echo "15 minutes reached. Stopping load test."
-    kill ${LOAD_GENERATORS[@]} 2>/dev/null
-    break
-  fi
-
-  # Stop if reached max clients
-  if (( CURRENT_CLIENTS >= MAX_CLIENTS )); then
-    echo "Reached max load: 1000 clients."
-    sleep $((TOTAL_DURATION - ELAPSED))
-    kill ${LOAD_GENERATORS[@]} 2>/dev/null
-    break
-  fi
-
-  # Wait before next load increase
-  sleep $STEP_INTERVAL
-  CURRENT_CLIENTS=$((CURRENT_CLIENTS + CLIENT_STEP))
-
+  POD_NAME=$(kubectl get pods -n $NAMESPACE -l run=emqtt-bench -o jsonpath='{.items[0].metadata.name}')
 done
 
 echo "Load test completed."
