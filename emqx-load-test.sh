@@ -4,47 +4,44 @@ NAMESPACE="emqx"
 BROKER="emqx-headless.emqx.svc.cluster.local"
 PORT=1883
 
-STEP_INTERVAL=$((15 * 60))   # 15 minutes
-CLIENT_STEP=100              # add 100 clients each step
-MAX_CLIENTS=1000             # maximum clients
+STEP_INTERVAL=$((15 * 60))     # 15 minutes
+CLIENT_STEP=100                # +100 clients each step
+MAX_CLIENTS=1000               # stop at 1000 clients
 
 CURRENT_CLIENTS=100
 
-echo "Starting EMQX load test..."
-echo "Increasing load every 15 minutes up to $MAX_CLIENTS clients."
-echo "-----------------------------------------------"
+echo "-------------------------------------------"
+echo "   EMQX 15-Min Step Load Generator"
+echo "-------------------------------------------"
+echo "Starting at 100 clients, adding 100 every 15 minutes."
+echo "-------------------------------------------"
 
-# Start initial pod
-kubectl run emqtt-bench \
-  --image=emqx/emqtt-bench -n $NAMESPACE --restart=Never -- \
-  pub -h $BROKER -p $PORT \
-  -c $CURRENT_CLIENTS \
-  --topic load/%c \
-  -q 1 \
-  -I 1000 \
-  -m '{"PV":"15.7"}' &
+while (( CURRENT_CLIENTS <= MAX_CLIENTS )); do
 
-POD_NAME=$(kubectl get pods -n $NAMESPACE -l run=emqtt-bench -o jsonpath='{.items[0].metadata.name}')
+  POD_NAME="emqtt-bench-$CURRENT_CLIENTS"
 
-while (( CURRENT_CLIENTS < MAX_CLIENTS )); do
-  sleep $STEP_INTERVAL
-  CURRENT_CLIENTS=$((CURRENT_CLIENTS + CLIENT_STEP))
-  
-  echo "Increasing clients in pod $POD_NAME to $CURRENT_CLIENTS..."
+  echo "Starting load pod: $POD_NAME  with $CURRENT_CLIENTS clients..."
 
-  # delete and restart pod with higher client count
-  kubectl delete pod $POD_NAME -n $NAMESPACE --wait=true
-
-  kubectl run emqtt-bench \
-    --image=emqx/emqtt-bench -n $NAMESPACE --restart=Never -- \
+  kubectl run "$POD_NAME" \
+    --image=emqx/emqtt-bench \
+    -n $NAMESPACE \
+    --restart=Never -- \
     pub -h $BROKER -p $PORT \
     -c $CURRENT_CLIENTS \
     --topic load/%c \
     -q 1 \
     -I 1000 \
-    -m '{"PV":"15.7"}' &
+    -m '{"PV":"15.7"}'
 
-  POD_NAME=$(kubectl get pods -n $NAMESPACE -l run=emqtt-bench -o jsonpath='{.items[0].metadata.name}')
+  echo "Pod $POD_NAME started."
+  echo "Waiting 15 minutes before increasing load..."
+  echo "-------------------------------------------"
+
+  sleep $STEP_INTERVAL
+
+  CURRENT_CLIENTS=$((CURRENT_CLIENTS + CLIENT_STEP))
 done
 
-echo "Load test completed."
+echo "-------------------------------------------"
+echo "Load test finished (max 1000 clients reached)."
+echo "-------------------------------------------"
